@@ -1,0 +1,195 @@
+name: PR Validation
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches: [ main, develop ]
+
+jobs:
+  commit-message-check:
+    name: Validate Commit Messages
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    permissions:
+      contents: read
+    steps:
+    - name: Checkout PR commits
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Check commit messages in PR
+      uses: wagoid/commitlint-github-action@v5
+      with:
+        configFile: .commitlintrc.json
+        failOnWarnings: true
+        firstParent: true
+
+  pr-title-check:
+    name: Validate PR Title
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+    - name: Check PR title format
+      run: |
+        PR_TITLE="${{ github.event.pull_request.title }}"
+        if [[ ! "$PR_TITLE" =~ ^(feat|fix|docs|style|refactor|perf|test|chore|ci|build|revert)(\(.+\))?:[[:space:]][A-Z].*[^.]$ ]]; then
+          echo "❌ PR title does not follow conventional commit format"
+          echo "Expected format: type(scope): Description"
+          echo "Examples:"
+          echo "  feat: add new MPT optimization"
+          echo "  fix(blockchain): resolve chain validation bug"
+          echo "  docs: update API reference"
+          exit 1
+        else
+          echo "✅ PR title follows conventional commit format"
+        fi
+
+  code-quality-check:
+    name: Code Quality Checks
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        components: rustfmt, clippy
+
+    - name: Cache dependencies
+      uses: Swatinem/rust-cache@v2
+
+    - name: Check code formatting
+      run: cargo fmt --all -- --check
+
+    - name: Run clippy linting
+      run: cargo clippy --all-targets --all-features -- -D warnings -D clippy::pedantic
+
+    - name: Check for security vulnerabilities
+      run: |
+        cargo install cargo-audit --quiet
+        cargo audit --deny warnings
+
+    - name: Check documentation builds
+      run: cargo doc --no-deps --document-private-items
+
+  test-validation:
+    name: Test Validation
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Cache dependencies
+      uses: Swatinem/rust-cache@v2
+
+    - name: Run tests
+      run: cargo test --verbose --all-features
+
+    - name: Run doctests
+      run: cargo test --doc
+
+    - name: Check test coverage threshold
+      run: |
+        cargo install cargo-tarpaulin --quiet
+        cargo tarpaulin --out Lcov --output-dir coverage -- --test-threads=1
+        COVERAGE=$(grep -o '"pct":[0-9.]*' coverage/lcov.info | head -1 | grep -o '[0-9.]*')
+        if (( $(echo "$COVERAGE < 80" | bc -l) )); then
+          echo "❌ Test coverage is below 80%: ${COVERAGE}%"
+          exit 1
+        else
+          echo "✅ Test coverage: ${COVERAGE}% (above 80% threshold)"
+        fi
+
+  dependency-check:
+    name: Dependency Validation
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Check for outdated dependencies
+      run: |
+        cargo install cargo-outdated --quiet
+        if cargo outdated --exit-code 1; then
+          echo "⚠️  Some dependencies are outdated"
+          echo "Consider updating them in a separate PR"
+        else
+          echo "✅ All dependencies are up to date"
+        fi
+
+    - name: Check for unused dependencies
+      run: |
+        cargo install cargo-udeps --quiet
+        if cargo udeps --all-targets; then
+          echo "✅ No unused dependencies found"
+        else
+          echo "⚠️  Unused dependencies detected"
+          echo "Consider removing them to reduce binary size"
+        fi
+
+  changelog-validation:
+    name: Changelog Validation
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    permissions:
+      contents: read
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Check if CHANGELOG.md was updated
+      run: |
+        if git diff --name-only HEAD~1 | grep -q "CHANGELOG.md"; then
+          echo "✅ CHANGELOG.md was updated"
+        else
+          echo "⚠️  CHANGELOG.md was not updated"
+          echo "Please add an entry to CHANGELOG.md describing the changes"
+        fi
+
+  size-check:
+    name: Binary Size Check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Cache dependencies
+      uses: Swatinem/rust-cache@v2
+
+    - name: Build release binary
+      run: cargo build --release
+
+    - name: Check binary size
+      run: |
+        BINARY_SIZE=$(stat -f%z target/release/vcbc)
+        SIZE_MB=$(echo "scale=2; $BINARY_SIZE / 1048576" | bc)
+        echo "Binary size: ${SIZE_MB} MB"
+
+        if (( $(echo "$SIZE_MB > 50" | bc -l) )); then
+          echo "❌ Binary size is too large: ${SIZE_MB} MB (max: 50 MB)"
+          exit 1
+        else
+          echo "✅ Binary size is acceptable: ${SIZE_MB} MB"
+        fi

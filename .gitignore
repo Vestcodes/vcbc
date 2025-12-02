@@ -1,0 +1,56 @@
+# Rust build artifacts
+target/
+Cargo.lock
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Log files
+*.log
+
+# Temporary files
+*.tmp
+*.bak
+
+# Blockchain data (for development)
+blockchain.json
+*.blockchain
+
+# Coverage reports
+tarpaulin-report.html
+cobertura.xml
+lcov.info
+
+# Benchmark results
+benchmark-*.txt
+
+# Documentation build
+book/
+
+# Jekyll
+.jekyll-cache/
+.jekyll-metadata
+Gemfile.lock
+vendor/
+
+# Node.js (if any frontend tooling is added)
+node_modules/
+package-lock.json
+
+# Environment files
+.env
+.env.local
+
+# Test fixtures
+test-data/
+fixtures/
+
+.cursor/

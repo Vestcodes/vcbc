@@ -1,0 +1,28 @@
+# cargo-release configuration
+# Whether to publish to crates.io
+publish = false
+
+# Whether to create a git tag
+tag = true
+
+# Whether to push changes and tags
+push = false
+
+# Whether to sign commits and tags
+sign-commit = false
+sign-tag = false
+
+# Pre-release replacements
+pre-release-replacements = [
+  {file="CHANGELOG.md", search="Unreleased", replace="{{version}}", min=0},
+]
+
+# Tag prefix
+tag-prefix = "v"
+
+# Custom messages
+pre-release-commit-message = "chore(release): prepare for {{version}}"
+tag-message = "chore(release): {{version}}"
+
+# Whether to verify builds
+verify = true

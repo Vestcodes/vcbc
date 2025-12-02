@@ -1,0 +1,42 @@
+[package]
+name = "vcbc"
+version = "0.1.0"
+edition = "2021"
+authors = ["vestcodes <contact@vestcodes.co>"]
+description = "VC BC - A clean, modular blockchain implementation with Merkle-Patricia Tries and cryptographic proofs by vestcodes"
+license = "GPL-3.0"
+keywords = ["blockchain", "cryptocurrency", "merkle-tree", "proof-of-work", "rust"]
+categories = ["cryptography", "data-structures", "web-programming"]
+repository = "https://github.com/vestcodes/vcbc"
+homepage = "https://github.com/vestcodes/vcbc"
+documentation = "https://docs.rs/vcbc"
+readme = "README.md"
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+sha2 = "0.10"
+chrono = { version = "0.4", features = ["serde"] }
+clap = { version = "4.0", features = ["derive"] }
+actix-web = "4.4"
+actix-rt = "2.9"
+reqwest = { version = "0.11", features = ["json"] }
+tokio = { version = "1.0", features = ["full"] }
+uuid = { version = "1.0", features = ["v4"] }
+hex = "0.4"
+tempfile = "3.0"
+ed25519-dalek = { version = "2.0", features = ["serde"] }
+rand = "0.8"
+base64 = "0.21"
+rusqlite = { version = "0.31", features = ["bundled"] }
+libp2p = { version = "0.53", features = [
+    "tcp", "dns", "yamux", "noise",
+    "gossipsub", "identify", "kad", "mdns", "ping",
+    "macros"
+] }
+futures = "0.3"
+ring = "0.17.14"
+zerocopy = "0.8.31"
+
+[dev-dependencies]
+proptest = "1.0"
