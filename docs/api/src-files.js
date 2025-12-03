@@ -1,0 +1,2 @@
+createSrcSidebar('[["vcbc",["",[["blockchain",[],["block.rs","chain.rs","mod.rs"]],["cli",[],["args.rs","commands.rs","mod.rs"]],["config",[],["authority.rs","certificate.rs","mod.rs","node.rs"]],["mpt",[],["hash.rs","mod.rs","node.rs","trie.rs"]],["network",[],["http.rs","mod.rs","p2p.rs"]],["proof",[],["core.rs","mod.rs"]],["storage",[],["db.rs","mod.rs","persistence.rs"]]],["error.rs","lib.rs"]]]]');
+//{"start":19,"fragment_lengths":[383]}
