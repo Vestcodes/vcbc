@@ -174,6 +174,9 @@ update-deps: ## Update all dependencies
 outdated: ## Check for outdated dependencies
 	cargo outdated
 
+analyze-commits: ## Analyze recent commits for release determination
+	./scripts/analyze-commits.sh development
+
 tree: ## Show project structure
 	tree -I target
 

@@ -744,7 +744,7 @@ VCBC uses automated releases with conventional commits, semantic versioning, and
 ### Branch Strategy
 
 - **`main`**: Production branch - stable releases and hotfixes
-- **`develop`**: Development branch - feature development and pre-releases
+- **`development`**: Development branch - feature development with automated pre-releases
 
 ### Creating a Release
 
@@ -764,17 +764,32 @@ git tag v1.0.1
 git push origin v1.0.1
 ```
 
-#### Development Releases (develop branch)
+#### Development Releases (development branch)
 ```bash
-# Switch to develop branch
-git checkout develop
-git pull origin develop
+# Switch to development branch
+git checkout development
+git pull origin development
 
-# Automated development release (triggers on push)
-# Or manual workflow dispatch in GitHub Actions
+# Automated development release (triggers after CI passes)
+# Push commits → CI runs → If CI passes, release analysis runs → Release created
+# CI automatically analyzes commits and creates releases when:
+# - Features are added (MINOR version bump)
+# - Fixes are made (PATCH version bump)
+# - Breaking changes detected (MAJOR version bump)
 
-# Development releases create pre-releases with version tags
+# Or manual workflow dispatch in GitHub Actions for forced releases
 ```
+
+#### Automated Commit Analysis
+The development CI automatically analyzes the last 10 commits to determine release type:
+
+- **`feat:` commits** → MINOR release (new features)
+- **`fix:` commits** → PATCH release (bug fixes)
+- **`perf:` commits** → PATCH release (performance)
+- **`refactor:` commits** → PATCH release (code improvements)
+- **Breaking changes** → MAJOR release (marked with `!` or `BREAKING`)
+
+Only conventional commits trigger automated releases.
 
 #### Dry Run Testing
 ```bash
@@ -793,10 +808,11 @@ make release-dry-run
   - Publishes to package registries
 
 #### Develop Branch (Development)
-- **Trigger**: Push to develop or manual workflow dispatch
+- **Trigger**: After CI workflow completes successfully + commit analysis
 - **Actions**:
-  - Creates version bump and tag
-  - Updates CHANGELOG.md
+  - Analyzes conventional commits for release determination
+  - Creates version bump and tag based on commit types
+  - Updates CHANGELOG.md with git-cliff
   - Creates pre-release on GitHub
   - Builds development Docker images
 
@@ -818,7 +834,30 @@ chore: update dependencies
 - **`release.toml`**: cargo-release configuration
 - **`cliff.toml`**: git-cliff changelog configuration
 - **`.github/workflows/release.yml`**: Production release workflow
-- **`.github/workflows/dev-release.yml`**: Development release workflow
+- **`.github/workflows/dev-release.yml`**: Development release workflow (depends on CI success)
+
+### Workflow Summary
+
+```
+development branch
+       ↓
+   Push commits
+       ↓
+   CI Pipeline
+   (tests, lint, build, security)
+       ↓
+   CI Success ✓
+       ↓
+Commit Analysis Script
+   (analyzes conventional commits)
+       ↓
+Determines Release Type
+   (patch/minor/major)
+       ↓
+cargo-release + git-cliff
+       ↓
+GitHub Pre-release + Docker Images
+```
 
 ## 📄 License
 

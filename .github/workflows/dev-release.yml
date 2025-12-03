@@ -1,8 +1,11 @@
 name: Development Release
 
 on:
-  push:
-    branches: [ develop ]
+  workflow_run:
+    workflows: ["CI"]
+    branches: [develop]
+    types:
+      - completed
   workflow_dispatch:
     inputs:
       version_type:
@@ -22,7 +25,7 @@ jobs:
   dev-release:
     name: Development Release
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/develop' || github.event_name == 'workflow_dispatch'
+    if: (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'develop') || github.event_name == 'workflow_dispatch'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
