@@ -12,6 +12,9 @@ push = false
 sign-commit = false
 sign-tag = false
 
+# Allow releases from develop branch
+allow-branch = ["main", "develop"]
+
 # Pre-release replacements
 pre-release-replacements = [
   {file="CHANGELOG.md", search="Unreleased", replace="{{version}}", min=0},

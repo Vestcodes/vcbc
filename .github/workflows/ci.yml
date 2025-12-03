@@ -2,12 +2,12 @@ name: CI
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, development ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main, development ]
   pull_request_target:
     types: [opened, synchronize, reopened, ready_for_review]
-    branches: [ main, develop ]
+    branches: [ main, development ]
 
 env:
   CARGO_TERM_COLOR: always
@@ -80,7 +80,7 @@ jobs:
   semver:
     name: Semantic Version Check
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' && github.base_ref == 'main'
+    if: github.event_name == 'pull_request' && github.base_ref == 'main' && github.head_ref != 'develop'
     steps:
     - name: Checkout code
       uses: actions/checkout@v4

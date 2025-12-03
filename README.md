@@ -737,6 +737,89 @@ cargo bench --bench mpt_benchmark
 - **Data Privacy**: MPT provides cryptographic integrity without revealing data
 - **Key Management**: No private keys stored in memory
 
+## 🚀 Release Process
+
+VCBC uses automated releases with conventional commits, semantic versioning, and beautiful changelogs.
+
+### Branch Strategy
+
+- **`main`**: Production branch - stable releases and hotfixes
+- **`develop`**: Development branch - feature development and pre-releases
+
+### Creating a Release
+
+#### Production Releases (main branch)
+```bash
+# Switch to main branch
+git checkout main
+git pull origin main
+
+# Create production release
+make release-patch    # Patch: 1.0.0 -> 1.0.1
+make release-minor    # Minor: 1.0.0 -> 1.1.0
+make release-major    # Major: 1.0.0 -> 2.0.0
+
+# Or manual tag creation
+git tag v1.0.1
+git push origin v1.0.1
+```
+
+#### Development Releases (develop branch)
+```bash
+# Switch to develop branch
+git checkout develop
+git pull origin develop
+
+# Automated development release (triggers on push)
+# Or manual workflow dispatch in GitHub Actions
+
+# Development releases create pre-releases with version tags
+```
+
+#### Dry Run Testing
+```bash
+# Test release process without executing
+make release-dry-run
+```
+
+### Automated Workflows
+
+#### Main Branch (Production)
+- **Trigger**: Tag push (`v*.*.*`)
+- **Actions**:
+  - Updates CHANGELOG.md
+  - Creates stable GitHub release
+  - Builds and pushes Docker images to Docker Hub
+  - Publishes to package registries
+
+#### Develop Branch (Development)
+- **Trigger**: Push to develop or manual workflow dispatch
+- **Actions**:
+  - Creates version bump and tag
+  - Updates CHANGELOG.md
+  - Creates pre-release on GitHub
+  - Builds development Docker images
+
+### Commit Conventions
+
+Follow [Conventional Commits](https://conventionalcommits.org/) for automatic changelog generation:
+
+```bash
+feat: add new blockchain feature
+fix: resolve MPT serialization bug
+docs: update API documentation
+refactor: improve error handling
+test: add unit tests for networking
+chore: update dependencies
+```
+
+### Release Files
+
+- **`release.toml`**: cargo-release configuration
+- **`cliff.toml`**: git-cliff changelog configuration
+- **`.github/workflows/release.yml`**: Production release workflow
+- **`.github/workflows/dev-release.yml`**: Development release workflow
+
 ## 📄 License
 
 This project is licensed under the GPL-3.0 License - see the [LICENSE](LICENSE) file for details.
